@@ -53,5 +53,13 @@ RSpec.describe CatchupRotation, :type => :model do
       expect(candidates).to include rotation_member_that_never_had_a_catch_up
     end
 
+    it 'should return candidates in a random order' do
+      first_run_names = candidates.map(&:name)
+      second_run_names = catchup_rotation.find_rotation_candidates_for_date(Date.today).map(&:name)
+
+      expect(first_run_names.sort).to eq second_run_names.sort
+      expect(first_run_names).not_to eq second_run_names
+    end
+
   end
 end
