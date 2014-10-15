@@ -12,7 +12,7 @@ RSpec.describe CatchupRotation, :type => :model do
     )
   end
 
-  describe :find_rotation_candidates_for_date do
+  describe :find_rotation_candidates_from_date do
     let(:rotation_member_that_never_had_a_catch_up)      { RotationMember.create!(name: 'Never Caught Up',           catchup_rotation: catchup_rotation) }
     let(:rotation_member_that_just_had_a_catchup)        { RotationMember.create!(name: 'Just Caught Up',            catchup_rotation: catchup_rotation, latest_catchup_at: Date.yesterday) }
     let(:rotation_member_that_had_a_catchup_a_week_ago)  { RotationMember.create!(name: 'Had catch-up a week ago',   catchup_rotation: catchup_rotation, latest_catchup_at: Date.today - 7.days + 5.minutes) }
@@ -27,7 +27,8 @@ RSpec.describe CatchupRotation, :type => :model do
       rotation_member_that_needs_a_new_catchup
     ]}
 
-    let(:candidates) { catchup_rotation.find_rotation_candidates_for_date(Date.today) }
+    let(:from_date)  { Date.today - 6.days }
+    let(:candidates) { catchup_rotation.find_rotation_candidates_from_date(from_date) }
 
     before {
       expect(rotation_members.length).to be 5
@@ -55,7 +56,7 @@ RSpec.describe CatchupRotation, :type => :model do
 
     it 'should return candidates in a random order' do
       first_run_names = candidates.map(&:name)
-      second_run_names = catchup_rotation.find_rotation_candidates_for_date(Date.today).map(&:name)
+      second_run_names = catchup_rotation.find_rotation_candidates_from_date(from_date).map(&:name)
 
       expect(first_run_names.sort).to eq second_run_names.sort
       expect(first_run_names).not_to eq second_run_names
