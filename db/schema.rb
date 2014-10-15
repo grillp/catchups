@@ -19,6 +19,8 @@ ActiveRecord::Schema.define(version: 20141015021227) do
     t.integer  "catchup_length_in_minutes"
     t.integer  "members_per_catchup"
     t.string   "location"
+    t.date     "latest_rotation_started_at"
+    t.date     "latest_rotation_ended_at"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
