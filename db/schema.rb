@@ -16,6 +16,7 @@ ActiveRecord::Schema.define(version: 20141015021227) do
   create_table "catchup_rotations", force: true do |t|
     t.string   "name"
     t.integer  "frequency_in_days"
+    t.integer  "catchup_length_in_minutes"
     t.integer  "members_per_catchup"
     t.string   "location"
     t.datetime "created_at"
@@ -24,8 +25,10 @@ ActiveRecord::Schema.define(version: 20141015021227) do
 
   create_table "rotation_members", force: true do |t|
     t.string   "name"
+    t.string   "nickname"
+    t.string   "title"
+    t.string   "email"
     t.integer  "catchup_rotation_id"
-    t.integer  "override_frequency_in_days"
     t.datetime "latest_catchup_at"
     t.string   "latest_catchup_item_id"
     t.datetime "created_at"
