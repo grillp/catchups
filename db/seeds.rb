@@ -69,14 +69,3 @@ catchups_table.map do | row |
     catchup_rotation: CatchupRotation.find_by(name: row[:rotation])
   )
 end
-
-# biweekly_one_on_one_names.each_line do | name_and_email |
-#   split = name_and_email.split(/[\t+]/)
-#   name = split.first.strip
-#   email = split.last.strip
-#   puts "#{name} <#{email}>"
-#   RotationMember.find_or_create_by(
-#     name: name.strip,
-#     catchup_rotation: biweekly_one_on_one
-#   )
-# end
