@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  catchup_rotation_id: 
+  override_frequency_in_days: 1
+  latest_catchup_at: 2014-10-15 13:12:27
+  latest_catchup_item_id: MyString
+
+two:
+  name: MyString
+  catchup_rotation_id: 
+  override_frequency_in_days: 1
+  latest_catchup_at: 2014-10-15 13:12:27
+  latest_catchup_item_id: MyString
