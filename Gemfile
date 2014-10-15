@@ -39,4 +39,4 @@ gem 'spring',        group: :development
 # gem 'debugger', group: [:development, :test]
 
 gem 'pry', group: [:development, :test]
-gem 'viewpoint', :git => 'https://github.com/WinRb/Viewpoint'
+gem 'viewpoint', :git => 'https://github.com/redbeard/Viewpoint.git'

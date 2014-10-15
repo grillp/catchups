@@ -21,7 +21,27 @@ task :cli => :setup_ews do
   @cli.pry
 end
 
+task :create_calendar_item => :setup_ews do
+  # http://msdn.microsoft.com/en-us/library/office/dd633661(v=exchg.80).aspx
+
+  calendar = @cli.get_folder :calendar
+
+  calendar.create_item(
+    required_attendees: [
+      { attendee: { mailbox: { email_address: "trotbart@seek.com.au" } } },
+      { attendee: { mailbox: { email_address: "gpeeters@seek.com.au" } } } ],
+    send_meeting_invitations: true,
+    subject: 'Test Invite Please Ignore',
+    start: Time.now + 50.minutes,
+    end: Time.now + 129.minutes)
+
+  #binding.pry
+end
+
+
 task :free => :setup_ews do
+  # http://msdn.microsoft.com/en-us/library/office/hh532560(v=exchg.80).aspx
+
   pst = Time.find_zone("Pacific Time (US & Canada)")
   start_time = Date.tomorrow.at_beginning_of_day
   end_time = Date.tomorrow.tomorrow.at_beginning_of_day

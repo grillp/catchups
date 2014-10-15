@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/WinRb/Viewpoint
+  remote: https://github.com/redbeard/Viewpoint.git
   revision: 0e00234b5c00fc29983f2e4845ebb43bea143345
   specs:
     viewpoint (1.0.0)
