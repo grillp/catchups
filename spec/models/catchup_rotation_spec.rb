@@ -2,14 +2,66 @@ require 'rails_helper'
 
 RSpec.describe CatchupRotation, :type => :model do
 
+  let(:organizer) {
+    RotationMember.create!(
+      name: 'Mr Organizer',
+      title: 'Some Manager',
+      nickname: 'MO',
+      email: 'organizer@org.com',
+      catchup_rotation_id: -1,
+    )
+  }
+
   let(:catchup_rotation) do
     CatchupRotation.create!(
+      organizer: organizer,
       name: 'Rotation',
       location: 'Coffeeshop',
-      members_per_catchup: 1,
+      members_per_catchup: 2,
       catchup_length_in_minutes: 60,
       frequency_in_days: 7,
     )
+  end
+
+  it "should validate that it has an organizer" do
+    catchup_rotation.organizer = nil
+
+    expect(catchup_rotation).to be_invalid
+  end
+
+  describe :find_catchup_time_for do
+    pending "todo"
+  end
+
+  describe :schedule_catchup do
+    let(:catchup_rotation_start_date) { Date.today + 7.days }
+    let(:catchup_rotation_end_date)   { catchup_rotation_start_date + catchup_rotation.frequency_in_days.days }
+
+    let(:scheduled_catchup) { catchup_rotation.schedule_catchup(start_date: catchup_rotation_start_date, end_date: catchup_rotation_end_date) }
+    let(:catchup_members) { [ member_a, member_b ] }
+
+    let(:member_a) { double("member_a", email: :member_a_email) }
+    let(:member_b) { double("member_b", email: :member_b_email) }
+
+    before do
+      allow(catchup_rotation).to receive(:find_rotation_candidates_from_date).with(catchup_rotation_start_date).and_return(catchup_members)      
+    end
+
+    it "should identify catchup candidates" do
+      expect(catchup_rotation).to receive(:find_rotation_candidates_from_date).with(catchup_rotation_start_date).and_return(catchup_members)
+
+      expect(scheduled_catchup).to eq :exchange_meeting
+    end
+
+    it "should pick catchup members and find an available time that works for them and catchup organiser" do
+      expect(catchup_rotation).to receive(:find_catchup_time_for).with(
+        start_date: catchup_rotation_start_date,
+        end_date: catchup_rotation_end_date,
+        attendees_emails: [ organizer.email, :member_a_email, :member_b_email ],
+      )
+
+      expect(scheduled_catchup).to eq :exchange_meeting
+    end
   end
 
   describe :find_rotation_candidates_from_date do

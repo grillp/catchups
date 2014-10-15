@@ -15,6 +15,7 @@ ActiveRecord::Schema.define(version: 20141015021227) do
 
   create_table "catchup_rotations", force: true do |t|
     t.string   "name"
+    t.integer  "organizer_id"
     t.integer  "frequency_in_days"
     t.integer  "catchup_length_in_minutes"
     t.integer  "members_per_catchup"

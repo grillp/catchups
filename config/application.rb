@@ -19,5 +19,17 @@ module Catchups
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
+
+    def exchange_ws_cli
+      @exchange_ws_cli ||= begin
+        require 'viewpoint'
+
+        endpoint = ENV['EWS_ENDPOINT'] || raise("Missing EWS_ENDPOINT for connecting to Exchange. Usually in the form of  'https://email.company.com/ews/Exchange.asmx'")
+        username = ENV['EWS_USERNAME'] || raise("Missing EWS_USERNAME for connecting to Exchange")
+        password = ENV['EWS_PASSWORD'] || raise("Missing EWS_PASSWORD for connecting to Exchange")
+
+        Viewpoint::EWSClient.new endpoint, username, password
+      end
+    end
   end
 end

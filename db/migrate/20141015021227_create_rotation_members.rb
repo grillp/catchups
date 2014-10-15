@@ -5,6 +5,7 @@ class CreateRotationMembers < ActiveRecord::Migration
       t.string :nickname
       t.string :title
       t.string :email
+      
       t.references :catchup_rotation, index: true
 
       t.datetime :latest_catchup_at

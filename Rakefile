@@ -42,7 +42,6 @@ end
 task :free => :setup_ews do
   # http://msdn.microsoft.com/en-us/library/office/hh532560(v=exchg.80).aspx
 
-  pst = Time.find_zone("Pacific Time (US & Canada)")
   start_time = Date.tomorrow.at_beginning_of_day
   end_time = Date.tomorrow.tomorrow.at_beginning_of_day
 
@@ -88,7 +87,7 @@ task :free => :setup_ews do
         builder.instance_eval do
           nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].SuggestionsViewOptions {
             nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MeetingDurationInMinutes(30)
-            nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MinimumSuggestionQuality("Good")
+            nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MinimumSuggestionQuality("Excellent")
             nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].DetailedSuggestionsWindow {
               nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].StartTime(format_time start_time_s)
               nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].EndTime(format_time end_time_s)
