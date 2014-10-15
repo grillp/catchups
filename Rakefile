@@ -9,7 +9,9 @@ task :setup_ews do
   require 'viewpoint'
   include Viewpoint::EWS
 
-  endpoint = 'https://email.seek.com.au/ews/Exchange.asmx'
+  @company_domain = ENV['COMPANY_DOMAIN']
+
+  endpoint = "https://email.#{@company_domain}/ews/Exchange.asmx"
   username = ENV['EWS_USERNAME']
   password = ENV['EWS_PASSWORD']
 
@@ -28,8 +30,8 @@ task :create_calendar_item => :setup_ews do
 
   calendar.create_item(
     required_attendees: [
-      { attendee: { mailbox: { email_address: "trotbart@seek.com.au" } } },
-      { attendee: { mailbox: { email_address: "gpeeters@seek.com.au" } } } ],
+      { attendee: { mailbox: { email_address: "trotbart@#{@company_domain}" } } },
+      { attendee: { mailbox: { email_address: "gpeeters@#{@company_domain}" } } } ],
     send_meeting_invitations: true,
     subject: 'Test Invite Please Ignore',
     start: Time.now + 50.minutes,
@@ -48,28 +50,11 @@ task :free => :setup_ews do
   start_time_s = start_time.iso8601
   end_time_s = end_time.iso8601
 
-  # user_free_busy = @cli.get_user_availability([ 'trotbart@seek.com.au', 'gpeeters@seek.com.au'],
-  #   time_zone: { bias: -600 },
-  #   start_time: start_time_s,
-  #   end_time: end_time_s,
-  #   meeting_duration: 30,
-  #   requested_view: :free_busy,
-  #   exclude_conflicts: true)
-  #
-  # busy_times = user_free_busy.calendar_event_array
-  #
-  # # Parse events from the calendar event array for start/end times and type
-  # events = busy_times.map { | event |
-  #   [ @cli.event_busy_type(event),
-  #   @cli.event_start_time(event),
-  #   @cli.event_end_time(event) ]
-  # }.inspect
-
   opts = {
     time_zone: { bias:-600 },
     mailbox_data: [
-      { email:{ address: "trotbart@seek.com.au"} },
-      { email:{ address: "gpeeters@seek.com.au"} } ],
+      { email:{ address: "trotbart@#{@company_domain}"} },
+      { email:{ address: "gpeeters@#{@company_domain}"} } ],
   }
 
   response = @cli.ews.instance_eval do
