@@ -26,7 +26,7 @@ class CatchupRotation < ActiveRecord::Base
   end
 
   def find_rotation_candidates_from_date(from_date)
-    rotation_members.where(["latest_catchup_at < :from_date OR latest_catchup_at IS NULL", { from_date: from_date }]).shuffle
+    rotation_members.where(["latest_catchup_at < :from_date OR latest_catchup_at IS NULL", { from_date: from_date.to_time }]).shuffle
   end
 
   def find_catchup_time_for(start_date: nil, end_date_exclusive: nil, attendees_emails: nil)
