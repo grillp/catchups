@@ -8,8 +8,15 @@ class CatchupRotation < ActiveRecord::Base
 
   def schedule_catchup(start_date: nil, end_date_exclusive: nil)
     ActiveRecord::Base.transaction do
-      catchup_hash, catchup_members = build_catchup(start_date: start_date, end_date_exclusive: end_date_exclusive)
-      Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash) unless Rails.env.development?
+      catchup_hash, catchup_members, catchup_time = build_catchup(start_date: start_date, end_date_exclusive: end_date_exclusive)
+      calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash) unless Rails.env.development?
+
+      catchup_members.each do | member |
+        member.latest_catchup_at = catchup_time
+        member.save!
+      end
+
+      calendar_item
     end
   end
 
@@ -31,7 +38,7 @@ class CatchupRotation < ActiveRecord::Base
       end: catchup_time + catchup_length_in_minutes.minutes
     }
 
-    return catchup_opts, candidates
+    return catchup_opts, candidates, catchup_time
   end
 
   def find_rotation_candidates_from_date(from_date)
