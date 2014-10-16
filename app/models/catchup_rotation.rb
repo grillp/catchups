@@ -6,6 +6,13 @@ class CatchupRotation < ActiveRecord::Base
 
   validates_presence_of :organizer
 
+  def schedule_catchup(start_date: nil, end_date_exclusive: nil)
+    ActiveRecord::Base.transaction do
+      catchup_hash = build_catchup(start_date: start_date, end_date_exclusive: end_date_exclusive)
+      Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)
+    end
+  end
+
   def build_catchup(start_date: nil, end_date_exclusive: nil)
     candidates = find_rotation_candidates_from_date(start_date)[0, members_per_catchup]
     attendees = [ organizer ] + candidates

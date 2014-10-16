@@ -29,6 +29,39 @@ RSpec.describe CatchupRotation, :type => :model do
     expect(catchup_rotation).to be_invalid
   end
 
+  describe :schedule_catchup do
+    let(:catchup_rotation_start_date) { Date.today + 7.days }
+    let(:catchup_rotation_end_date)   { catchup_rotation_start_date + catchup_rotation.frequency_in_days.days }
+
+    let(:scheduled_catchup) { catchup_rotation.schedule_catchup(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date) }
+
+    let(:catchup_hash) { double('catchup hash') }
+
+    let(:fake_ews_cli) { double("mocked cli") }
+    let(:calendar_folder) { double("calendar folder") }
+
+    before do
+      allow(Rails.application).to receive(:exchange_ws_cli).and_return(fake_ews_cli)
+      allow(fake_ews_cli).to receive(:get_folder).with(:calendar).and_return(calendar_folder)
+      allow(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(:exchange_response)
+      allow(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return(catchup_hash)
+    end
+
+    it "should call build catchup to construct a catch up" do
+      expect(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return(catchup_hash)
+
+      expect(scheduled_catchup).to eq :exchange_response
+    end
+
+    it "should create a calendar item" do
+      expect(fake_ews_cli).to receive(:get_folder).with(:calendar).and_return(calendar_folder)
+      expect(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(:exchange_response)
+
+      expect(scheduled_catchup).to eq :exchange_response
+    end
+
+  end
+
   describe :find_catchup_time_for do
     let(:start_date) { double('start date') }
     let(:end_date) { double('end date') }
