@@ -17,9 +17,12 @@ RSpec.describe CatchupRotation, :type => :model do
       organizer: organizer,
       name: 'Rotation',
       location: 'Coffeeshop',
+      body: 'Body',
       members_per_catchup: 2,
       catchup_length_in_minutes: 60,
       frequency_in_days: 7,
+      latest_rotation_started_at: 1.month.ago,
+      latest_rotation_ended_at: 1.month.ago + 7.days,
     )
   end
 
@@ -27,6 +30,23 @@ RSpec.describe CatchupRotation, :type => :model do
     catchup_rotation.organizer = nil
 
     expect(catchup_rotation).to be_invalid
+  end
+
+  describe :schedule_rotation do
+
+    before do
+
+    end
+
+    it "should schedule catchups until there are no more candidates" do
+      expect(catchup_rotation).to receive(:schedule_catchup).with(start_date: catchup_rotation.latest_rotation_ended_at, end_date_exclusive: catchup_rotation.latest_rotation_ended_at + catchup_rotation.frequency_in_days.days).and_return(:calendar_item, :calendar_item, nil)
+
+      catchup_rotation.schedule_rotation
+    end
+
+    pending "it should start from today if no previous rotation dates"
+
+    pending "should update the latest rotation dates"
   end
 
   describe :schedule_catchup do
@@ -59,6 +79,12 @@ RSpec.describe CatchupRotation, :type => :model do
 
       allow(member_b).to receive(:latest_catchup_at=).with(catchup_time)
       allow(member_b).to receive(:save!)
+    end
+
+    it "should return nils if there are no more candidates for catchups" do
+      expect(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return([nil, nil, nil])
+
+      expect(scheduled_catchup).to be nil
     end
 
     it "should call build catchup to construct a catch up" do
@@ -143,6 +169,12 @@ RSpec.describe CatchupRotation, :type => :model do
       allow(catchup_time).to receive(:+).with(60.minutes)
     end
 
+    it "should return nils if there are no more candidates for catchups" do
+      expect(catchup_rotation).to receive(:find_rotation_candidates_from_date).with(catchup_rotation_start_date).and_return([])
+
+      expect(scheduled_catchup).to be nil
+    end
+
     it "should identify catchup candidates" do
       expect(catchup_rotation).to receive(:find_rotation_candidates_from_date).with(catchup_rotation_start_date).and_return(catchup_members)
 
@@ -167,6 +199,10 @@ RSpec.describe CatchupRotation, :type => :model do
 
     it "should set the catch up location" do
       expect(scheduled_catchup[:location]).to eq 'Coffeeshop'
+    end
+
+    it "should set the catch up bodyt" do
+      expect(scheduled_catchup[:body]).to eq 'Body'
     end
 
   end

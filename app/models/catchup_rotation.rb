@@ -6,16 +6,24 @@ class CatchupRotation < ActiveRecord::Base
 
   validates_presence_of :organizer
 
+  def schedule_rotation
+    items = []
+    until (calendar_item = schedule_catchup(start_date: latest_rotation_ended_at, end_date_exclusive: latest_rotation_ended_at + frequency_in_days.days).nil?) do
+      items << calendar_item
+    end
+  end
+
   def schedule_catchup(start_date: nil, end_date_exclusive: nil)
     ActiveRecord::Base.transaction do
       catchup_hash, catchup_members, catchup_time = build_catchup(start_date: start_date, end_date_exclusive: end_date_exclusive)
+
+      return nil if catchup_hash.nil? or catchup_members.nil? or catchup_time.nil?
 
       Rails.logger.info "Catchup data: #{catchup_hash.to_json}"
       Rails.logger.info "Catchup members: #{catchup_members}"
       Rails.logger.info "Catchup time: #{catchup_time}"
 
       calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)  # unless Rails.env.development?
-
 
       catchup_members.each do | member |
         member.latest_catchup_at = catchup_time
@@ -28,6 +36,7 @@ class CatchupRotation < ActiveRecord::Base
 
   def build_catchup(start_date: nil, end_date_exclusive: nil)
     candidates = find_rotation_candidates_from_date(start_date)[0, members_per_catchup]
+    return nil, nil, nil if candidates.blank?
     attendees = [ organizer ] + candidates
 
     catchup_time = find_catchup_time_for(
@@ -41,6 +50,7 @@ class CatchupRotation < ActiveRecord::Base
       required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
       send_meeting_invitations: true,
       subject: "Catchup: #{attendees.reverse.map(&:nickname).join(" + ")}",
+      body: body,
       location: location,
       start: catchup_time,
       end: catchup_time + catchup_length_in_minutes.minutes
