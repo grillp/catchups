@@ -40,15 +40,17 @@ RSpec.describe CatchupRotation, :type => :model do
     let(:fake_ews_cli) { double("mocked cli") }
     let(:calendar_folder) { double("calendar folder") }
 
+    let(:catchup_members) { double("catchup members") }
+
     before do
       allow(Rails.application).to receive(:exchange_ws_cli).and_return(fake_ews_cli)
       allow(fake_ews_cli).to receive(:get_folder).with(:calendar).and_return(calendar_folder)
       allow(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(:exchange_response)
-      allow(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return(catchup_hash)
+      allow(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return([ catchup_hash, catchup_members ])
     end
 
     it "should call build catchup to construct a catch up" do
-      expect(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return(catchup_hash)
+      expect(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return([catchup_hash, catchup_members])
 
       expect(scheduled_catchup).to eq :exchange_response
     end
@@ -60,6 +62,9 @@ RSpec.describe CatchupRotation, :type => :model do
       expect(scheduled_catchup).to eq :exchange_response
     end
 
+    it "should set the last catch up time for the members" do
+
+    end
   end
 
   describe :find_catchup_time_for do
@@ -101,7 +106,11 @@ RSpec.describe CatchupRotation, :type => :model do
     let(:catchup_rotation_start_date) { Date.today + 7.days }
     let(:catchup_rotation_end_date)   { catchup_rotation_start_date + catchup_rotation.frequency_in_days.days }
 
-    let(:scheduled_catchup) { catchup_rotation.build_catchup(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date) }
+    let(:scheduled_catchup) do
+      catchup, members = catchup_rotation.build_catchup(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date)
+      catchup
+    end
+
     let(:catchup_members) { [ member_a, member_b ] }
 
     let(:member_a) { double("member_a", email: :member_a_email, nickname: 'A') }
@@ -111,7 +120,6 @@ RSpec.describe CatchupRotation, :type => :model do
 
     before do
       allow(catchup_rotation).to receive(:find_rotation_candidates_from_date).with(catchup_rotation_start_date).and_return(catchup_members)
-
       allow(catchup_rotation).to receive(:find_catchup_time_for).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date, attendees_emails: [ 'organizer@org.com', :member_a_email, :member_b_email ]).and_return(catchup_time)
 
       allow(catchup_time).to receive(:+).with(60.minutes)
