@@ -40,4 +40,4 @@ gem 'spring',        group: :development
 gem 'rspec-rails', group: [:development, :test]
 
 gem 'pry', group: [:development, :test]
-gem 'viewpoint', :git => 'https://github.com/redbeard/Viewpoint.git'
+gem 'viewpoint', :path => '../Viewpoint' #:git => 'https://github.com/redbeard/Viewpoint.git'

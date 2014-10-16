@@ -1,6 +1,5 @@
-GIT
-  remote: https://github.com/redbeard/Viewpoint.git
-  revision: 0e00234b5c00fc29983f2e4845ebb43bea143345
+PATH
+  remote: ../Viewpoint
   specs:
     viewpoint (1.0.0)
       httpclient
@@ -49,7 +48,7 @@ GEM
     coffee-script-source (1.8.0)
     diff-lcs (1.2.5)
     erubis (2.7.0)
-    execjs (2.2.1)
+    execjs (2.2.2)
     hike (1.2.3)
     httpclient (2.4.0)
     i18n (0.6.11)
@@ -67,7 +66,7 @@ GEM
     mail (2.6.1)
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
-    mime-types (2.4.1)
+    mime-types (2.4.2)
     mini_portile (0.6.0)
     minitest (5.4.2)
     multi_json (1.10.1)

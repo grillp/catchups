@@ -9,9 +9,13 @@ class CatchupRotation < ActiveRecord::Base
   def schedule_catchup(start_date: nil, end_date_exclusive: nil)
     ActiveRecord::Base.transaction do
       catchup_hash, catchup_members, catchup_time = build_catchup(start_date: start_date, end_date_exclusive: end_date_exclusive)
+
+      Rails.logger.info "Catchup data: #{catchup_hash.to_json}"
+      Rails.logger.info "Catchup members: #{catchup_members}"
+      Rails.logger.info "Catchup time: #{catchup_time}"
+
       calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)  # unless Rails.env.development?
 
-      Rails.logger.info catchup_hash.to_json
 
       catchup_members.each do | member |
         member.latest_catchup_at = catchup_time
@@ -31,10 +35,13 @@ class CatchupRotation < ActiveRecord::Base
       end_date_exclusive: end_date_exclusive,
       attendees_emails: attendees.map(&:email))
 
+    raise "Couldn't find meeting time for #{attendees.map(&:name).join(', ')} from #{start_date} to #{end_date_exclusive}" unless catchup_time
+
     catchup_opts = {
       required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
       send_meeting_invitations: true,
-      subject: "Regular Catchup: #{attendees.reverse.map(&:nickname).join(" + ")}",
+      subject: "Catchup: #{attendees.reverse.map(&:nickname).join(" + ")}",
+      location: location,
       start: catchup_time,
       end: catchup_time + catchup_length_in_minutes.minutes
     }
@@ -59,6 +66,7 @@ class CatchupRotation < ActiveRecord::Base
     }
 
     response = hack_get_user_availability_response(start_time_s, end_time_s, opts, catchup_length_in_minutes)
+
     potential_times = parse_get_user_availability_response(response)
 
     filter_rejected_times(potential_times).shuffle.first
@@ -108,7 +116,7 @@ class CatchupRotation < ActiveRecord::Base
       suggestion_day_result[:suggestion_day_result][:elems].last[:suggestion_array][:elems]
     end.compact.flatten.map do | suggestion_attr_array |
       time_s = suggestion_attr_array[:suggestion][:elems].reduce(Hash.new) { | hash, attribute_hash | hash.merge(attribute_hash).except(:attendee_conflict_data_array)}[:meeting_time][:text]
-      DateTime.iso8601("#{time_s}#{Time.zone.formatted_offset}")
+      Time.parse(time_s).to_datetime
     end
   end
 

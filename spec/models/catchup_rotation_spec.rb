@@ -162,7 +162,11 @@ RSpec.describe CatchupRotation, :type => :model do
     end
 
     it "should set the catch up description using nicknames" do
-      expect(scheduled_catchup[:subject]).to eq "Regular Catchup: B + A + MO"
+      expect(scheduled_catchup[:subject]).to eq "Catchup: B + A + MO"
+    end
+
+    it "should set the catch up location" do
+      expect(scheduled_catchup[:location]).to eq 'Coffeeshop'
     end
 
   end
