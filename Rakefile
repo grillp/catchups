@@ -50,6 +50,10 @@ task :free => :setup_ews do
   start_time_s = start_time.iso8601
   end_time_s = end_time.iso8601
 
+  puts "Start time: #{start_time_s}"
+  puts "End time: #{end_time_s}"
+
+
   opts = {
     time_zone: { bias:-600 },
     mailbox_data: [
@@ -70,6 +74,8 @@ task :free => :setup_ews do
         end
         }
         builder.instance_eval do
+          puts "Start time formatted: #{format_time start_time_s}"
+          puts "End time formatted: #{format_time end_time_s}"
           nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].SuggestionsViewOptions {
             nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MeetingDurationInMinutes(30)
             nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MinimumSuggestionQuality("Excellent")
