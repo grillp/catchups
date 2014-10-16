@@ -9,7 +9,9 @@ class CatchupRotation < ActiveRecord::Base
   def schedule_catchup(start_date: nil, end_date_exclusive: nil)
     ActiveRecord::Base.transaction do
       catchup_hash, catchup_members, catchup_time = build_catchup(start_date: start_date, end_date_exclusive: end_date_exclusive)
-      calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash) unless Rails.env.development?
+      calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)  # unless Rails.env.development?
+
+      Rails.logger.info catchup_hash.to_json
 
       catchup_members.each do | member |
         member.latest_catchup_at = catchup_time
@@ -23,15 +25,14 @@ class CatchupRotation < ActiveRecord::Base
   def build_catchup(start_date: nil, end_date_exclusive: nil)
     candidates = find_rotation_candidates_from_date(start_date)[0, members_per_catchup]
     attendees = [ organizer ] + candidates
-    attendees_emails = attendees.map(&:email)
 
     catchup_time = find_catchup_time_for(
       start_date: start_date,
       end_date_exclusive: end_date_exclusive,
-      attendees_emails: attendees_emails)
+      attendees_emails: attendees.map(&:email))
 
     catchup_opts = {
-      required_attendees: attendees_emails.map { | email_address | { attendee: { mailbox: { email_address: email_address } } } },
+      required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
       send_meeting_invitations: true,
       subject: "Regular Catchup: #{attendees.reverse.map(&:nickname).join(" + ")}",
       start: catchup_time,

@@ -46,10 +46,12 @@ RSpec.describe CatchupRotation, :type => :model do
     let(:member_a) { double("member_a", email: :member_a_email, nickname: 'A') }
     let(:member_b) { double("member_b", email: :member_b_email, nickname: 'B') }
 
+    let(:calendar_item) { double("calendar item") }
+
     before do
       allow(Rails.application).to receive(:exchange_ws_cli).and_return(fake_ews_cli)
       allow(fake_ews_cli).to receive(:get_folder).with(:calendar).and_return(calendar_folder)
-      allow(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(:exchange_response)
+      allow(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(calendar_item)
       allow(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return([ catchup_hash, catchup_members, catchup_time ])
 
       allow(member_a).to receive(:latest_catchup_at=).with(catchup_time)
@@ -62,14 +64,14 @@ RSpec.describe CatchupRotation, :type => :model do
     it "should call build catchup to construct a catch up" do
       expect(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return([catchup_hash, catchup_members, catchup_time])
 
-      expect(scheduled_catchup).to eq :exchange_response
+      expect(scheduled_catchup).to be calendar_item
     end
 
     it "should create a calendar item" do
       expect(fake_ews_cli).to receive(:get_folder).with(:calendar).and_return(calendar_folder)
-      expect(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(:exchange_response)
+      expect(calendar_folder).to receive(:create_item).with(catchup_hash).and_return(calendar_item)
 
-      expect(scheduled_catchup).to eq :exchange_response
+      expect(scheduled_catchup).to be calendar_item
     end
 
     it "should set the last catch up time for the members" do
@@ -79,7 +81,7 @@ RSpec.describe CatchupRotation, :type => :model do
       expect(member_b).to receive(:latest_catchup_at=).with(catchup_time)
       expect(member_b).to receive(:save!)
 
-      expect(scheduled_catchup).to eq :exchange_response      
+      expect(scheduled_catchup).to be calendar_item
     end
   end
 
