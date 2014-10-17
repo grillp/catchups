@@ -8,7 +8,7 @@ class CatchupRotation < ActiveRecord::Base
 
   def schedule_rotation
     items = []
-    new_start_date = latest_rotation_ended_at || Date.today
+    new_start_date = latest_rotation_ended_at || (Date.today.at_beginning_of_week + 7.days)
     new_end_date = new_start_date + frequency_in_days.days
 
     until (calendar_item = schedule_catchup(start_date: new_start_date, end_date_exclusive: new_end_date).nil?) do
@@ -58,8 +58,8 @@ class CatchupRotation < ActiveRecord::Base
 
     catchup_opts = {
       required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
-      send_meeting_invitations: true,
-      subject: "Catchup: #{attendees.reverse.map(&:nickname).join(" + ")}",
+      send_meeting_invitations: Rails.env.production?,
+      subject: "Regular catch-up: #{attendees.reverse.map(&:nickname).join(" + ")}",
       body: body,
       location: location,
       start: catchup_time,

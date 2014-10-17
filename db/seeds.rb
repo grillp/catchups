@@ -28,10 +28,10 @@ Tal
 eos
 
 one_on_one_body = <<-eos
-As always, I would like to discuss:
-- Your current pain points
+(Re)establishing a regular catch-up, I would like to discuss:
+- Your, or your team's current pain points around development
 - Opportunities and ideas for improvement
-- Any other business
+- Anything else I can help with
 
 Cheers,
 Tal
@@ -84,7 +84,7 @@ principals = CatchupRotation.find_or_create_by!(
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 3,
+  frequency_in_days: 7 * 4,
   )
 
 developers = CatchupRotation.find_or_create_by!(

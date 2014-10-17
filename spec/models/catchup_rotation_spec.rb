@@ -44,11 +44,12 @@ RSpec.describe CatchupRotation, :type => :model do
       catchup_rotation.schedule_rotation
     end
 
-    it "it should start from today if no previous rotation dates" do
+    it "it should start from monday next week if no previous rotation dates" do
       catchup_rotation.latest_rotation_started_at = nil
       catchup_rotation.latest_rotation_ended_at = nil
 
-      expect(catchup_rotation).to receive(:schedule_catchup).with(start_date: Date.today, end_date_exclusive: Date.today + catchup_rotation.frequency_in_days.days).and_return(:calendar_item, :calendar_item, nil)
+      start_date = Date.today.at_beginning_of_week + 7.days
+      expect(catchup_rotation).to receive(:schedule_catchup).with(start_date: start_date, end_date_exclusive: start_date + catchup_rotation.frequency_in_days.days).and_return(:calendar_item, :calendar_item, nil)
 
       catchup_rotation.schedule_rotation
     end
@@ -211,7 +212,7 @@ RSpec.describe CatchupRotation, :type => :model do
     end
 
     it "should set the catch up description using nicknames" do
-      expect(scheduled_catchup[:subject]).to eq "Catchup: B + A + MO"
+      expect(scheduled_catchup[:subject]).to eq "Regular catch-up: B + A + MO"
     end
 
     it "should set the catch up location" do
