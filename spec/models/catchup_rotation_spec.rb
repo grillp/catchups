@@ -21,8 +21,8 @@ RSpec.describe CatchupRotation, :type => :model do
       members_per_catchup: 2,
       catchup_length_in_minutes: 60,
       frequency_in_days: 7,
-      latest_rotation_started_at: 1.month.ago,
-      latest_rotation_ended_at: 1.month.ago + 7.days,
+      latest_rotation_started_at: 1.month.ago.to_date,
+      latest_rotation_ended_at: (1.month.ago + 7.days).to_date,
     )
   end
 
@@ -35,7 +35,7 @@ RSpec.describe CatchupRotation, :type => :model do
   describe :schedule_rotation do
 
     before do
-
+      allow(catchup_rotation).to receive(:schedule_catchup).with(start_date: catchup_rotation.latest_rotation_ended_at, end_date_exclusive: catchup_rotation.latest_rotation_ended_at + catchup_rotation.frequency_in_days.days).and_return(:calendar_item, :calendar_item, nil)
     end
 
     it "should schedule catchups until there are no more candidates" do
@@ -44,9 +44,26 @@ RSpec.describe CatchupRotation, :type => :model do
       catchup_rotation.schedule_rotation
     end
 
-    pending "it should start from today if no previous rotation dates"
+    it "it should start from today if no previous rotation dates" do
+      catchup_rotation.latest_rotation_started_at = nil
+      catchup_rotation.latest_rotation_ended_at = nil
 
-    pending "should update the latest rotation dates"
+      expect(catchup_rotation).to receive(:schedule_catchup).with(start_date: Date.today, end_date_exclusive: Date.today + catchup_rotation.frequency_in_days.days).and_return(:calendar_item, :calendar_item, nil)
+
+      catchup_rotation.schedule_rotation
+    end
+
+    it "should update the latest rotation dates" do
+      expect(catchup_rotation.latest_rotation_started_at).to eq (1.month.ago).to_date
+      expect(catchup_rotation.latest_rotation_ended_at).to eq (1.month.ago + 7.days).to_date
+
+      catchup_rotation.schedule_rotation
+
+      catchup_rotation.reload
+
+      expect(catchup_rotation.latest_rotation_started_at).to eq (1.month.ago + 7.days).to_date
+      expect(catchup_rotation.latest_rotation_ended_at).to eq (1.month.ago + 14.days).to_date
+    end
   end
 
   describe :schedule_catchup do

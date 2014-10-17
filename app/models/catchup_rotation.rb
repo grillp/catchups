@@ -8,9 +8,19 @@ class CatchupRotation < ActiveRecord::Base
 
   def schedule_rotation
     items = []
-    until (calendar_item = schedule_catchup(start_date: latest_rotation_ended_at, end_date_exclusive: latest_rotation_ended_at + frequency_in_days.days).nil?) do
+    new_start_date = latest_rotation_ended_at || Date.today
+    new_end_date = new_start_date + frequency_in_days.days
+
+    until (calendar_item = schedule_catchup(start_date: new_start_date, end_date_exclusive: new_end_date).nil?) do
       items << calendar_item
     end
+
+    self.latest_rotation_started_at = new_start_date
+    self.latest_rotation_ended_at = new_end_date
+
+    save!
+
+    items
   end
 
   def schedule_catchup(start_date: nil, end_date_exclusive: nil)
