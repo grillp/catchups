@@ -37,16 +37,6 @@ Cheers,
 Tal
 eos
 
-weekly_one_on_one = CatchupRotation.find_or_create_by!(
-  organizer: organizer,
-  name: 'Weekly One on One',
-  location: 'Coffeeshop',
-  body: one_on_one_body,
-  members_per_catchup: 1,
-  catchup_length_in_minutes: 60,
-  frequency_in_days: 7 * 1,
-  )
-
 biweekly_one_on_one = CatchupRotation.find_or_create_by!(
   organizer: organizer,
   name: 'Bi-Weekly One on One',
@@ -114,7 +104,7 @@ catchups_table.map do | row |
     name: row[:name],
     title: row[:title],
     nickname: row[:nickname],
-    email: row[:email],
+    email: Rails.env.production? ? row[:email] : 'fake email for #{row[:name]} @ test/dev',
     catchup_rotation: CatchupRotation.find_by(name: row[:rotation])
   )
 end

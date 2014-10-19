@@ -136,29 +136,29 @@ RSpec.describe CatchupRotation, :type => :model do
     let(:potential_times) { double('potential times') }
     let(:filtered_times) { [ :filtered_time ] }
 
-    let(:catchup_time) { catchup_rotation.find_catchup_time_for(start_date: start_date, end_date_exclusive: end_date, attendees_emails: attendees_emails) }
+    let(:catchup_time) { CatchupRotation.find_catchup_time_for(start_date: start_date, end_date_exclusive: end_date, attendees_emails: attendees_emails) }
 
     before do
-      allow(catchup_rotation).to receive(:hack_get_user_availability_response).and_return(:response)
-      allow(catchup_rotation).to receive(:parse_get_user_availability_response).and_return(potential_times)
+      allow(CatchupRotation).to receive(:hack_get_user_availability_response).and_return(:response)
+      allow(CatchupRotation).to receive(:parse_get_user_availability_response).and_return(potential_times)
 
       allow(start_date).to receive(:at_beginning_of_day).and_return(start_date)
       allow(end_date).to receive(:at_beginning_of_day).and_return(end_date)
       allow(start_date).to receive(:iso8601).and_return(:start_date_iso8601)
       allow(end_date).to receive(:iso8601).and_return(:end_date_iso8601)
 
-      allow(catchup_rotation).to receive(:filter_rejected_times).and_return(filtered_times)
+      allow(CatchupRotation).to receive(:filter_rejected_times).and_return(filtered_times)
     end
 
     it "should call the exchange server to find potential catch up times" do
-      expect(catchup_rotation).to receive(:hack_get_user_availability_response).and_return(:response)
-      expect(catchup_rotation).to receive(:parse_get_user_availability_response).and_return(potential_times)
+      expect(CatchupRotation).to receive(:hack_get_user_availability_response).and_return(:response)
+      expect(CatchupRotation).to receive(:parse_get_user_availability_response).and_return(potential_times)
 
       expect(catchup_time).to be :filtered_time
     end
 
     it "should filter rejected times" do
-      expect(catchup_rotation).to receive(:filter_rejected_times).and_return(filtered_times)
+      expect(CatchupRotation).to receive(:filter_rejected_times).and_return(filtered_times)
 
       expect(catchup_time).to be :filtered_time
     end
@@ -182,7 +182,7 @@ RSpec.describe CatchupRotation, :type => :model do
 
     before do
       allow(catchup_rotation).to receive(:find_rotation_candidates_from_date).with(catchup_rotation_start_date).and_return(catchup_members)
-      allow(catchup_rotation).to receive(:find_catchup_time_for).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date, attendees_emails: [ 'organizer@org.com', :member_a_email, :member_b_email ]).and_return(catchup_time)
+      allow(CatchupRotation).to receive(:find_catchup_time_for).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date, attendees_emails: [ 'organizer@org.com', :member_a_email, :member_b_email ], catchup_length_in_minutes: 60).and_return(catchup_time)
 
       allow(catchup_time).to receive(:+).with(60.minutes)
     end
@@ -200,7 +200,7 @@ RSpec.describe CatchupRotation, :type => :model do
     end
 
     it "should find an available time that works for them and catchup organiser" do
-      expect(catchup_rotation).to receive(:find_catchup_time_for).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date, attendees_emails: [ 'organizer@org.com', :member_a_email, :member_b_email ]).and_return(catchup_time)
+      expect(CatchupRotation).to receive(:find_catchup_time_for).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date, attendees_emails: [ 'organizer@org.com', :member_a_email, :member_b_email ], catchup_length_in_minutes: 60).and_return(catchup_time)
 
       expect(scheduled_catchup).to be_a Hash
     end

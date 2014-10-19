@@ -29,9 +29,9 @@ class CatchupRotation < ActiveRecord::Base
 
       return nil if catchup_hash.nil? or catchup_members.nil? or catchup_time.nil?
 
-      Rails.logger.info "Catchup data: #{catchup_hash.to_json}"
-      Rails.logger.info "Catchup members: #{catchup_members}"
-      Rails.logger.info "Catchup time: #{catchup_time}"
+      puts "Catchup data: #{catchup_hash.to_json}" if Rails.env.development?
+      puts "Catchup members: #{catchup_members}" if Rails.env.development?
+      puts "Catchup time: #{catchup_time}" if Rails.env.development?
 
       calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)  # unless Rails.env.development?
 
@@ -49,10 +49,11 @@ class CatchupRotation < ActiveRecord::Base
     return nil, nil, nil if candidates.blank?
     attendees = [ organizer ] + candidates
 
-    catchup_time = find_catchup_time_for(
+    catchup_time = CatchupRotation.find_catchup_time_for(
       start_date: start_date,
       end_date_exclusive: end_date_exclusive,
-      attendees_emails: attendees.map(&:email))
+      attendees_emails: attendees.map(&:email),
+      catchup_length_in_minutes: self.catchup_length_in_minutes)
 
     raise "Couldn't find meeting time for #{attendees.map(&:name).join(', ')} from #{start_date} to #{end_date_exclusive}" unless catchup_time
 
@@ -73,12 +74,17 @@ class CatchupRotation < ActiveRecord::Base
     rotation_members.where(["latest_catchup_at < :from_date OR latest_catchup_at IS NULL", { from_date: from_date.to_time }]).shuffle
   end
 
-  def find_catchup_time_for(start_date: nil, end_date_exclusive: nil, attendees_emails: nil)
+  def self.find_catchup_time_for(start_date: nil, end_date_exclusive: nil, attendees_emails: nil, catchup_length_in_minutes: nil)
     start_time = start_date.at_beginning_of_day
     end_time = end_date_exclusive.at_beginning_of_day
 
     start_time_s = start_time.iso8601
     end_time_s = end_time.iso8601
+
+    current_time_period = Time.zone.tzinfo.canonical_zone.current_period
+    other_time_period = Time.zone.period_for_utc(current_time_period.utc_end_time)
+    standard_time_period = current_time_period.dst? ? other_time_period : current_time_period
+    dst_time_period = current_time_period.dst? ? current_time_period : other_time_period
 
     opts = {
       time_zone: { bias: Rails.application.config.exchange_time_zone_bias },
@@ -88,17 +94,19 @@ class CatchupRotation < ActiveRecord::Base
     response = hack_get_user_availability_response(start_time_s, end_time_s, opts, catchup_length_in_minutes)
 
     potential_times = parse_get_user_availability_response(response)
+    filtered_times = filter_rejected_times(potential_times)
+    shuffled_times = filtered_times.shuffle
 
-    filter_rejected_times(potential_times).shuffle.first
+    shuffled_times.first
   end
 
   private
 
-  def filter_rejected_times(potential_times)
+  def self.filter_rejected_times(potential_times)
     potential_times.reject { | datetime | Rails.application.config.reject_times.any? { | lmbd | lmbd.call(datetime) } }
   end
 
-  def hack_get_user_availability_response(start_time_s, end_time_s, opts, length_in_minutes)
+  def self.hack_get_user_availability_response(start_time_s, end_time_s, opts, length_in_minutes)
     Rails.application.exchange_ws_cli.ews.instance_eval do
         req = build_soap! do |type, builder|
         if(type == :header)
@@ -129,7 +137,7 @@ class CatchupRotation < ActiveRecord::Base
     end
   end
 
-  def parse_get_user_availability_response(response)
+  def self.parse_get_user_availability_response(response)
     suggestion_day_results = response.body.first[:get_user_availability_response][:elems].first[:suggestions_response][:elems].last[:suggestion_day_result_array][:elems]
 
     suggestions = suggestion_day_results.map do | suggestion_day_result |
