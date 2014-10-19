@@ -9,7 +9,7 @@ task :schedule_rotations => [ :environment ] do
   CatchupRotation.all.map(&:schedule_rotation)
 end
 
-task :setup_ews do
+task :setup_ews => [ :environment ] do
   require 'viewpoint'
   include Viewpoint::EWS
 
@@ -83,55 +83,9 @@ def build_time_zone_hash
 end
 
 task :free => :setup_ews do
-  # http://msdn.microsoft.com/en-us/library/office/hh532560(v=exchg.80).aspx
-  Time.zone = 'Melbourne'
-
-  start_time = (Date.today + 1.days).at_beginning_of_day
-  end_time = (start_time + 1.day).at_beginning_of_day
-
-  start_time_s = "2014-11-07T00:00:00" #start_time.iso8601
-  end_time_s = "2014-11-08T00:00:00" # end_time.iso8601
-
-  puts "Start time: #{start_time_s}"
-  puts "End time: #{end_time_s}"
-
-  opts = {
-    time_zone: { bias: -660 },
-    mailbox_data: [
-      { email:{ address: "trotbart@#{@company_domain}"} },
-      { email:{ address: "gpeeters@#{@company_domain}"} } ],
-  }
-
-  response = @cli.ews.instance_eval do
-      req = build_soap! do |type, builder|
-      if(type == :header)
-      else
-      builder.nbuild.GetUserAvailabilityRequest {|x|
-        x.parent.default_namespace = @default_ns
-        builder.time_zone!(opts[:time_zone])
-        builder.nbuild.MailboxDataArray {
-        opts[:mailbox_data].each do |mbd|
-          builder.mailbox_data!(mbd)
-        end
-        }
-        builder.instance_eval do
-          puts "Start time formatted: #{format_time start_time_s}"
-          puts "End time formatted: #{format_time end_time_s}"
-          nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].SuggestionsViewOptions {
-            nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MeetingDurationInMinutes(30)
-            nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].MinimumSuggestionQuality("Excellent")
-            nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].DetailedSuggestionsWindow {
-              nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].StartTime(start_time_s)
-              nbuild[Viewpoint::EWS::SOAP::NS_EWS_TYPES].EndTime(end_time_s)
-            }
-          }
-        end
-      }
-      end
-    end
-
-    do_soap_request(req, response_class: Viewpoint::EWS::SOAP::EwsSoapFreeBusyResponse)
-  end
-
-  # binding.pry
+  puts CatchupRotation.find_catchup_time_for(
+    start_date: Date.parse("07/11/2014"),
+    end_date_exclusive: Date.parse("08/11/2014"),
+    attendees_emails: [ 'trotbart@seek.com.au'],
+    catchup_length_in_minutes: 30)
 end

@@ -75,6 +75,16 @@ class CatchupRotation < ActiveRecord::Base
   end
 
   def self.find_catchup_time_for(start_date: nil, end_date_exclusive: nil, attendees_emails: nil, catchup_length_in_minutes: nil)
+    CatchupRotation.find_catchup_times_for(
+      start_date: start_date,
+      end_date_exclusive: end_date_exclusive,
+      attendees_emails: attendees_emails,
+      catchup_length_in_minutes: attendees_emails).shuffle.first
+  end
+
+  private
+
+  def self.find_catchup_times_for(start_date: nil, end_date_exclusive: nil, attendees_emails: nil, catchup_length_in_minutes: nil)
     start_time = start_date.at_beginning_of_day
     end_time = end_date_exclusive.at_beginning_of_day
 
@@ -95,12 +105,7 @@ class CatchupRotation < ActiveRecord::Base
 
     potential_times = parse_get_user_availability_response(response)
     filtered_times = filter_rejected_times(potential_times)
-    shuffled_times = filtered_times.shuffle
-
-    shuffled_times.first
   end
-
-  private
 
   def self.filter_rejected_times(potential_times)
     potential_times.reject { | datetime | Rails.application.config.reject_times.any? { | lmbd | lmbd.call(datetime) } }
