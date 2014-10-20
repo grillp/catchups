@@ -56,10 +56,6 @@ class CatchupRotation < ActiveRecord::Base
 
     raise "Couldn't find meeting time for #{attendees.map(&:name).join(', ')} from #{start_date} to #{end_date_exclusive}" unless catchup_time
 
-    if Rails.env.development?
-      Rails.application.config.date_histogram[catchup_time.to_date] = (Rails.application.config.date_histogram[catchup_time.to_date] || 0) + 1
-    end
-
     catchup_opts = {
       required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
       send_meeting_invitations: Rails.env.production?,
@@ -82,7 +78,7 @@ class CatchupRotation < ActiveRecord::Base
       start_date: start_date,
       end_date_exclusive: end_date_exclusive,
       attendees_emails: attendees_emails,
-      catchup_length_in_minutes: catchup_length_in_minutes).shuffle.first
+      catchup_length_in_minutes: catchup_length_in_minutes).first
   end
 
   private
@@ -108,10 +104,19 @@ class CatchupRotation < ActiveRecord::Base
 
     potential_times = parse_get_user_availability_response(response)
     filtered_times = filter_rejected_times(potential_times)
+    sort_times_by_number_of_catch_ups_on_that_date(filtered_times)
   end
 
   def self.filter_rejected_times(potential_times)
     potential_times.reject { | datetime | Rails.application.config.reject_times.any? { | lmbd | lmbd.call(datetime) } }
+  end
+
+  def self.sort_times_by_number_of_catch_ups_on_that_date(potential_times)
+    date_s_to_count = RotationMember.group("DATE(latest_catchup_at)").count
+
+    date_to_count = date_s_to_count.reduce(Hash.new) { | memo, (key, value) | memo[Date.parse(key)] = value unless key.nil?; memo }
+
+    potential_times.sort_by { | time | date_to_count[time.to_date] || 0 }
   end
 
   def self.hack_get_user_availability_response(start_time_s, end_time_s, opts, length_in_minutes)

@@ -1,4 +1,3 @@
-Rails.application.config.date_histogram = {}
 Rails.application.config.reject_times = []
 
 # Reject lunch times
@@ -14,4 +13,8 @@ Rails.application.config.reject_times << lambda { | datetime | datetime > dateti
 Rails.application.config.reject_times << lambda { | datetime | (not RotationMember.where(["latest_catchup_at = :datetime", { datetime: datetime }]).blank?) }
 
 # Reject times on the most used date in this session, to force a more even distribution
-Rails.application.config.reject_times << lambda { | datetime | Rails.application.config.date_histogram.sort_by {|_key, value| value}.try(:last).try(:first) == datetime.to_date }
+# Rails.application.config.reject_times << lambda do | datetime |
+#   dates_histogram = RotationMember.group("DATE(latest_catchup_at)").count
+#   date_s = dates_histogram.sort_by { | _key, value | value }.try(:last).try(:first)
+#   date_s.nil? ? false : Date.parse(date_s) == datetime.to_date
+# end

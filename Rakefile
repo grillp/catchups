@@ -13,7 +13,7 @@ task :schedule_rotations => [ :environment, :default ] do
     end
   end
 
-  puts Rails.application.config.date_histogram.to_yaml
+  puts RotationMember.group("DATE(latest_catchup_at)").count.to_yaml
   puts
 end
 

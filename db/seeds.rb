@@ -47,20 +47,20 @@ stakeholders = CatchupRotation.find_or_create_by!(
   frequency_in_days: 7 * 3,
   )
 
-monthly = CatchupRotation.find_or_create_by!(
+secondary_stakeholders = CatchupRotation.find_or_create_by!(
   organizer: organizer,
-  name: 'Monthly One on One',
-  location: 'Coffeeshop',
+  name: 'Secondary Stakeholders',
+  location: 'The Hub / Coffeeshop',
   body: one_on_one_body,
   members_per_catchup: 1,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 4,
+  frequency_in_days: 7 * 5,
   )
 
 senior_principals = CatchupRotation.find_or_create_by!(
   organizer: organizer,
   name: 'Senior Principals',
-  location: 'Coffeeshop',
+  location: 'The Hub',
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
@@ -70,7 +70,7 @@ senior_principals = CatchupRotation.find_or_create_by!(
 principals = CatchupRotation.find_or_create_by!(
   organizer: organizer,
   name: 'Principals',
-  location: 'Coffeeshop',
+  location: 'The Hub',
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
@@ -80,7 +80,7 @@ principals = CatchupRotation.find_or_create_by!(
 developers = CatchupRotation.find_or_create_by!(
   organizer: organizer,
   name: 'Developers',
-  location: 'Coffeeshop',
+  location: 'The Hub',
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
@@ -90,7 +90,7 @@ developers = CatchupRotation.find_or_create_by!(
 ui_queue= CatchupRotation.find_or_create_by!(
   organizer: organizer,
   name: 'UI Queue',
-  location: 'Coffeeshop',
+  location: 'The Hub',
   body: one_on_one_body,
   members_per_catchup: 1,
   catchup_length_in_minutes: 30,

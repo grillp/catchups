@@ -139,6 +139,7 @@ RSpec.describe CatchupRotation, :type => :model do
     let(:attendees_emails) { [ 'email@org.com', 'another_email@org.com' ] }
     let(:potential_times) { double('potential times') }
     let(:filtered_times) { [ :filtered_time ] }
+    let(:sorted_times) { [ :sorted_time ] }
 
     let(:catchup_time) { CatchupRotation.find_catchup_time_for(start_date: start_date, end_date_exclusive: end_date, attendees_emails: attendees_emails) }
 
@@ -152,19 +153,26 @@ RSpec.describe CatchupRotation, :type => :model do
       allow(end_date).to receive(:iso8601).and_return(:end_date_iso8601)
 
       allow(CatchupRotation).to receive(:filter_rejected_times).and_return(filtered_times)
+      allow(CatchupRotation).to receive(:sort_times_by_number_of_catch_ups_on_that_date).and_return(sorted_times)
     end
 
     it "should call the exchange server to find potential catch up times" do
       expect(CatchupRotation).to receive(:hack_get_user_availability_response).and_return(:response)
       expect(CatchupRotation).to receive(:parse_get_user_availability_response).and_return(potential_times)
 
-      expect(catchup_time).to be :filtered_time
+      expect(catchup_time).to be :sorted_time
     end
 
     it "should filter rejected times" do
       expect(CatchupRotation).to receive(:filter_rejected_times).and_return(filtered_times)
 
-      expect(catchup_time).to be :filtered_time
+      expect(catchup_time).to be :sorted_time
+    end
+
+    it "should sort the times" do
+      expect(CatchupRotation).to receive(:sort_times_by_number_of_catch_ups_on_that_date).and_return(sorted_times)
+
+      expect(catchup_time).to be :sorted_time
     end
   end
 
