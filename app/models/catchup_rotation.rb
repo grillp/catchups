@@ -58,7 +58,7 @@ class CatchupRotation < ActiveRecord::Base
 
     catchup_opts = {
       required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
-      send_meeting_invitations: Rails.env.production?,
+      send_meeting_invitations: Rails.env.production? ? 'SendToAllAndSaveCopy' : false,
       subject: "Regular catch-up: #{attendees.reverse.map(&:nickname).join(" + ")}",
       body: body,
       location: location,
