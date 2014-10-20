@@ -32,6 +32,7 @@ ActiveRecord::Schema.define(version: 20141015021227) do
     t.string   "nickname"
     t.string   "title"
     t.string   "email"
+    t.string   "team"
     t.integer  "catchup_rotation_id"
     t.datetime "latest_catchup_at"
     t.string   "latest_catchup_item_id"

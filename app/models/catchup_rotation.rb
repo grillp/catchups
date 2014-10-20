@@ -29,16 +29,15 @@ class CatchupRotation < ActiveRecord::Base
 
       return nil if catchup_hash.nil? or catchup_members.nil? or catchup_time.nil?
 
-      # puts "Catchup data: #{catchup_hash.to_json}" if Rails.env.development?
-      # puts "Catchup members: #{catchup_members}" if Rails.env.development?
-      # puts "Catchup time: #{catchup_time}" if Rails.env.development?
-
       calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)  # unless Rails.env.development?
 
       catchup_members.each do | member |
         member.latest_catchup_at = catchup_time
+        member.latest_catchup_item_id = calendar_item.id
         member.save!
       end
+
+      puts "\tScheduled catchup: #{catchup_hash[:subject]} at #{catchup_time}" if Rails.env.development?
 
       calendar_item
     end
@@ -75,7 +74,7 @@ class CatchupRotation < ActiveRecord::Base
   end
 
   def find_rotation_candidates_from_date(from_date)
-    rotation_members.where(["latest_catchup_at < :from_date OR latest_catchup_at IS NULL", { from_date: from_date.to_time }]).shuffle
+    rotation_members.where(["latest_catchup_at < :from_date OR latest_catchup_at IS NULL", { from_date: from_date.to_time }]).group("team").shuffle
   end
 
   def self.find_catchup_time_for(start_date: nil, end_date_exclusive: nil, attendees_emails: nil, catchup_length_in_minutes: nil)

@@ -84,7 +84,7 @@ RSpec.describe CatchupRotation, :type => :model do
     let(:member_a) { double("member_a", email: :member_a_email, nickname: 'A') }
     let(:member_b) { double("member_b", email: :member_b_email, nickname: 'B') }
 
-    let(:calendar_item) { double("calendar item") }
+    let(:calendar_item) { double("calendar item", id: :calendar_item_id) }
 
     before do
       allow(Rails.application).to receive(:exchange_ws_cli).and_return(fake_ews_cli)
@@ -93,9 +93,11 @@ RSpec.describe CatchupRotation, :type => :model do
       allow(catchup_rotation).to receive(:build_catchup).with(start_date: catchup_rotation_start_date, end_date_exclusive: catchup_rotation_end_date).and_return([ catchup_hash, catchup_members, catchup_time ])
 
       allow(member_a).to receive(:latest_catchup_at=).with(catchup_time)
+      allow(member_a).to receive(:latest_catchup_item_id=).with(:calendar_item_id)
       allow(member_a).to receive(:save!)
 
       allow(member_b).to receive(:latest_catchup_at=).with(catchup_time)
+      allow(member_b).to receive(:latest_catchup_item_id=).with(:calendar_item_id)
       allow(member_b).to receive(:save!)
     end
 
@@ -118,11 +120,13 @@ RSpec.describe CatchupRotation, :type => :model do
       expect(scheduled_catchup).to be calendar_item
     end
 
-    it "should set the last catch up time for the members" do
+    it "should set the last catch up time and id for the members" do
       expect(member_a).to receive(:latest_catchup_at=).with(catchup_time)
+      expect(member_a).to receive(:latest_catchup_item_id=).with(:calendar_item_id)
       expect(member_a).to receive(:save!)
 
       expect(member_b).to receive(:latest_catchup_at=).with(catchup_time)
+      expect(member_b).to receive(:latest_catchup_item_id=).with(:calendar_item_id)
       expect(member_b).to receive(:save!)
 
       expect(scheduled_catchup).to be calendar_item
@@ -226,11 +230,11 @@ RSpec.describe CatchupRotation, :type => :model do
   end
 
   describe :find_rotation_candidates_from_date do
-    let(:rotation_member_that_never_had_a_catch_up)      { RotationMember.create!(name: 'Never Caught Up',           catchup_rotation: catchup_rotation) }
-    let(:rotation_member_that_just_had_a_catchup)        { RotationMember.create!(name: 'Just Caught Up',            catchup_rotation: catchup_rotation, latest_catchup_at: from_date + 5.days + 3.minutes ) }
-    let(:rotation_member_that_had_a_catchup_a_week_ago)  { RotationMember.create!(name: 'Had catch-up a week ago',   catchup_rotation: catchup_rotation, latest_catchup_at: from_date - 7.day + 5.minutes) }
-    let(:rotation_member_that_had_a_catchup_on_the_from_date){ RotationMember.create!(name: 'Had catch-up on the from date', catchup_rotation: catchup_rotation, latest_catchup_at: from_date) }
-    let(:rotation_member_that_needs_a_new_catchup)       { RotationMember.create!(name: 'Caught Up Eight Days Ago',  catchup_rotation: catchup_rotation, latest_catchup_at: from_date - 8.days) }
+    let(:rotation_member_that_never_had_a_catch_up)      { RotationMember.create!(team: 1, name: 'Never Caught Up',           catchup_rotation: catchup_rotation) }
+    let(:rotation_member_that_just_had_a_catchup)        { RotationMember.create!(team: 2, name: 'Just Caught Up',            catchup_rotation: catchup_rotation, latest_catchup_at: from_date + 5.days + 3.minutes ) }
+    let(:rotation_member_that_had_a_catchup_a_week_ago)  { RotationMember.create!(team: 3, name: 'Had catch-up a week ago',   catchup_rotation: catchup_rotation, latest_catchup_at: from_date - 7.day + 5.minutes) }
+    let(:rotation_member_that_had_a_catchup_on_the_from_date){ RotationMember.create!(team: 4, name: 'Had catch-up on the from date', catchup_rotation: catchup_rotation, latest_catchup_at: from_date) }
+    let(:rotation_member_that_needs_a_new_catchup)       { RotationMember.create!(team: 5, name: 'Caught Up Eight Days Ago',  catchup_rotation: catchup_rotation, latest_catchup_at: from_date - 8.days) }
 
     let(:rotation_members) { [
       rotation_member_that_never_had_a_catch_up,

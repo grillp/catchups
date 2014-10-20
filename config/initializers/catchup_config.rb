@@ -12,3 +12,6 @@ Rails.application.config.reject_times << lambda { | datetime | datetime > dateti
 
 # Reject times used in this session, as Exchange updates this cache slowly
 Rails.application.config.reject_times << lambda { | datetime | (not RotationMember.where(["latest_catchup_at = :datetime", { datetime: datetime }]).blank?) }
+
+# Reject times on the most used date in this session, to force a more even distribution
+Rails.application.config.reject_times << lambda { | datetime | Rails.application.config.date_histogram.sort_by {|_key, value| value}.try(:last).try(:first) == datetime.to_date }

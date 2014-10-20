@@ -8,14 +8,13 @@ Rails.application.load_tasks
 task :schedule_rotations => [ :environment, :default ] do
   CatchupRotation.all.each do | rotation |
     while rotation.latest_rotation_ended_at.nil? or (Date.today + 14.days >= rotation.latest_rotation_ended_at)
-      Rails.application.config.date_histogram = {}
       puts "Scheduling rotation: #{rotation.name}"
       rotation.schedule_rotation
-      puts Rails.application.config.date_histogram.to_yaml
-      puts
     end
   end
 
+  puts Rails.application.config.date_histogram.to_yaml
+  puts
 end
 
 task :setup_ews => [ :environment ] do
