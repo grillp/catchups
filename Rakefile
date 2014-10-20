@@ -5,8 +5,17 @@ require File.expand_path('../config/application', __FILE__)
 
 Rails.application.load_tasks
 
-task :schedule_rotations => [ :environment ] do
-  CatchupRotation.all.map(&:schedule_rotation)
+task :schedule_rotations => [ :environment, :default ] do
+  CatchupRotation.all.each do | rotation |
+    while rotation.latest_rotation_ended_at.nil? or (Date.today + 14.days >= rotation.latest_rotation_ended_at)
+      Rails.application.config.date_histogram = {}
+      puts "Scheduling rotation: #{rotation.name}"
+      rotation.schedule_rotation
+      puts Rails.application.config.date_histogram.to_yaml
+      puts
+    end
+  end
+
 end
 
 task :setup_ews => [ :environment ] do
@@ -83,9 +92,16 @@ def build_time_zone_hash
 end
 
 task :free => :setup_ews do
-  puts CatchupRotation.find_catchup_time_for(
+  puts CatchupRotation.find_catchup_times_for(
     start_date: Date.parse("07/11/2014"),
     end_date_exclusive: Date.parse("08/11/2014"),
+    attendees_emails: [ 'trotbart@seek.com.au'],
+    catchup_length_in_minutes: 30)
+
+  puts "2nd"
+  puts CatchupRotation.find_catchup_times_for(
+    start_date: Date.parse("28/10/2014"),
+    end_date_exclusive: Date.parse("29/10/2014"),
     attendees_emails: [ 'trotbart@seek.com.au'],
     catchup_length_in_minutes: 30)
 end

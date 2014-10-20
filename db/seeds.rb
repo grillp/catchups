@@ -37,17 +37,17 @@ Cheers,
 Tal
 eos
 
-biweekly_one_on_one = CatchupRotation.find_or_create_by!(
+stakeholders = CatchupRotation.find_or_create_by!(
   organizer: organizer,
-  name: 'Bi-Weekly One on One',
+  name: 'Stakeholders',
   location: 'Coffeeshop',
   body: one_on_one_body,
   members_per_catchup: 1,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 2,
+  frequency_in_days: 7 * 3,
   )
 
-biweekly_one_on_one = CatchupRotation.find_or_create_by!(
+monthly = CatchupRotation.find_or_create_by!(
   organizer: organizer,
   name: 'Monthly One on One',
   location: 'Coffeeshop',
@@ -64,7 +64,7 @@ senior_principals = CatchupRotation.find_or_create_by!(
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 2,
+  frequency_in_days: 7 * 3,
   )
 
 principals = CatchupRotation.find_or_create_by!(
@@ -74,7 +74,7 @@ principals = CatchupRotation.find_or_create_by!(
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 4,
+  frequency_in_days: 7 * 5,
   )
 
 developers = CatchupRotation.find_or_create_by!(
@@ -84,7 +84,7 @@ developers = CatchupRotation.find_or_create_by!(
   body: default_body,
   members_per_catchup: 2,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 6,
+  frequency_in_days: 7 * 7,
   )
 
 ui_queue= CatchupRotation.find_or_create_by!(
@@ -94,17 +94,23 @@ ui_queue= CatchupRotation.find_or_create_by!(
   body: one_on_one_body,
   members_per_catchup: 1,
   catchup_length_in_minutes: 30,
-  frequency_in_days: 7 * 6,
+  frequency_in_days: 7 * 7,
   )
 
 catchups_table = CSV.table("db/catchups.csv")
 
 catchups_table.map do | row |
-  RotationMember.find_or_create_by!(
-    name: row[:name],
-    title: row[:title],
-    nickname: row[:nickname],
-    email: Rails.env.production? ? row[:email] : 'fake email for #{row[:name]} @ test/dev',
-    catchup_rotation: CatchupRotation.find_by(name: row[:rotation])
-  )
+  begin
+    RotationMember.find_or_create_by!(
+      name: row[:name],
+      title: row[:title],
+      nickname: row[:nickname],
+      team: row[:team],
+      email: Rails.env.production? ? row[:email] : "fake email for #{row[:name]} @ test/dev",
+      catchup_rotation: CatchupRotation.find_by(name: row[:rotation])
+    )
+
+  rescue => e
+    raise "Error: #{e} while processing row: #{row.inspect}"
+  end
 end

@@ -29,9 +29,9 @@ class CatchupRotation < ActiveRecord::Base
 
       return nil if catchup_hash.nil? or catchup_members.nil? or catchup_time.nil?
 
-      puts "Catchup data: #{catchup_hash.to_json}" if Rails.env.development?
-      puts "Catchup members: #{catchup_members}" if Rails.env.development?
-      puts "Catchup time: #{catchup_time}" if Rails.env.development?
+      # puts "Catchup data: #{catchup_hash.to_json}" if Rails.env.development?
+      # puts "Catchup members: #{catchup_members}" if Rails.env.development?
+      # puts "Catchup time: #{catchup_time}" if Rails.env.development?
 
       calendar_item = Rails.application.exchange_ws_cli.get_folder(:calendar).create_item(catchup_hash)  # unless Rails.env.development?
 
@@ -57,6 +57,10 @@ class CatchupRotation < ActiveRecord::Base
 
     raise "Couldn't find meeting time for #{attendees.map(&:name).join(', ')} from #{start_date} to #{end_date_exclusive}" unless catchup_time
 
+    if Rails.env.development?
+      Rails.application.config.date_histogram[catchup_time.to_date] = (Rails.application.config.date_histogram[catchup_time.to_date] || 0) + 1
+    end
+
     catchup_opts = {
       required_attendees: candidates.map { | member | { attendee: { mailbox: { email_address: member.email } } } },
       send_meeting_invitations: Rails.env.production?,
@@ -79,7 +83,7 @@ class CatchupRotation < ActiveRecord::Base
       start_date: start_date,
       end_date_exclusive: end_date_exclusive,
       attendees_emails: attendees_emails,
-      catchup_length_in_minutes: attendees_emails).shuffle.first
+      catchup_length_in_minutes: catchup_length_in_minutes).shuffle.first
   end
 
   private
