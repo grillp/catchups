@@ -28,16 +28,29 @@ task :create_calendar_item => :setup_ews do
 
   calendar = @cli.get_folder :calendar
 
-  calendar.create_item(
+  response = calendar.create_item(
     required_attendees: [
-      { attendee: { mailbox: { email_address: "trotbart@#{@company_domain}" } } },
       { attendee: { mailbox: { email_address: "gpeeters@#{@company_domain}" } } } ],
     send_meeting_invitations: true,
     subject: 'Test Invite Please Ignore',
     start: Time.now + 50.minutes,
     end: Time.now + 129.minutes)
 
-  #binding.pry
+  pp response
+
+  binding.pry
+end
+
+
+task :play => :setup_ews do
+  # http://msdn.microsoft.com/en-us/library/office/dd633661(v=exchg.80).aspx
+
+  @cli.get_rooms("Melbourne541StKildaRoad@seek.com.au").roomsArray.collect{|r| [@cli.room_name(r) , @cli.room_email(r)] }
+
+  calendar = @cli.get_folder :calendar
+
+
+  binding.pry
 end
 
 
