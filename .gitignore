@@ -16,3 +16,4 @@
 /tmp
 db/catchups.csv
 /bin/*
+.DS_Store

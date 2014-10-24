@@ -8,7 +8,9 @@ class CreateCatchupRotations < ActiveRecord::Migration
       t.integer :frequency_in_days
       t.integer :catchup_length_in_minutes
       t.integer :members_per_catchup
+
       t.string :location
+      t.text :body
 
       t.date :latest_rotation_started_at
       t.date :latest_rotation_ended_at
